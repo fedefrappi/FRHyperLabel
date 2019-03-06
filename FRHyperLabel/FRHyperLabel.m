@@ -72,6 +72,7 @@ static UIColor *FRHyperLabelLinkColorHighlight;
 
 - (void)clearActionDictionary {
     [self.handlerDictionary removeAllObjects];
+    self.backupAttributedText = nil;
 }
 
 //designated setter
@@ -134,25 +135,29 @@ static UIColor *FRHyperLabelLinkColorHighlight;
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event {
-	[UIView transitionWithView:self duration:highLightAnimationTime options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-		self.attributedText = self.backupAttributedText;
-	} completion:nil];
+    if (self.backupAttributedText) {
+        [UIView transitionWithView:self duration:highLightAnimationTime options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            self.attributedText = self.backupAttributedText;
+        } completion:nil];
+    }
 	[super touchesCancelled:touches withEvent:event];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-	[UIView transitionWithView:self duration:highLightAnimationTime options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
-		self.attributedText = self.backupAttributedText;
-	} completion:nil];
-	
-	for (UITouch *touch in touches) {
-		NSValue *rangeValue = [self attributedTextRangeForPoint:[touch locationInView:self]];
-		if (rangeValue) {
-			void(^handler)(FRHyperLabel *label, NSRange selectedRange) = self.handlerDictionary[rangeValue];
-			handler(self, [rangeValue rangeValue]);
-			return;
-		}
-	}
+    if (self.backupAttributedText) {
+        [UIView transitionWithView:self duration:highLightAnimationTime options:UIViewAnimationOptionTransitionCrossDissolve animations:^{
+            self.attributedText = self.backupAttributedText;
+        } completion:nil];
+        
+        for (UITouch *touch in touches) {
+            NSValue *rangeValue = [self attributedTextRangeForPoint:[touch locationInView:self]];
+            if (rangeValue) {
+                void(^handler)(FRHyperLabel *label, NSRange selectedRange) = self.handlerDictionary[rangeValue];
+                handler(self, [rangeValue rangeValue]);
+                return;
+            }
+        }        
+    }
 	[super touchesEnded:touches withEvent:event];
 }
 
